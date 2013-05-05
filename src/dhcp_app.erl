@@ -10,7 +10,6 @@
 %% ===================================================================
 
 start(_StartType, _StartArgs) ->
-    io:format("~p  ~p:~n", [?MODULE, ?LINE]),
     dhcp_sup:start_link().
 
 stop(_State) ->

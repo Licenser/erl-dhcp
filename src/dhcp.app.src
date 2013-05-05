@@ -8,5 +8,6 @@
                   stdlib
                  ]},
   {mod, { dhcp_app, []}},
-  {env, []}
+  {env, [{server, {127, 0, 0, 1}},
+         {callback, dhcp_example_callback}]}
  ]}.
