@@ -16,7 +16,6 @@
 %% ===================================================================
 
 start_link() ->
-    io:format("~p  ~p:~n", [?MODULE, ?LINE]),
     supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
 %% ===================================================================
@@ -24,10 +23,6 @@ start_link() ->
 %% ===================================================================
 
 init([]) ->
-    io:format("~p  ~p:~n", [?MODULE, ?LINE]),
-    Dhcpd        = ?CHILD(dhcp_server, worker),
-    Specs       = [ Dhcpd
-                  ],
-
+    Dhcpd = ?CHILD(dhcp_server, worker),
+    Specs = [Dhcpd],
     {ok, { {one_for_one, 5, 10}, Specs} }.
-
