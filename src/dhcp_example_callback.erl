@@ -17,6 +17,7 @@ get_net_info(CHAddr) ->
      {subnet_mask, Mask},
      {broadcast_address, Broadcast},
      {dns_server, DNS},
-     {domain_name, Domain},
-     {router, GW}].
+     {domain_name, Domain} %,
+                                                %{router, GW}
+    ].
 
