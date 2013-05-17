@@ -179,7 +179,7 @@ get_leaseinfo(Packet, _State = #dhcp_state{cb_mod = M}) ->
             Broadcast = Network + (bnot Mask), %{192, 168, 2, 255}
 
             {ok, #dhcp_lease{
-                    ip_addr = IP,
+                    ip_addr = ip_to_tpl(IP),
                     chaddr = Packet#dhcp_packet.chaddr,
                     options = [{lease_time, 3600}, % One hour
                                {renewal_time, 1800}, % Thirty minutes
@@ -192,7 +192,6 @@ get_leaseinfo(Packet, _State = #dhcp_state{cb_mod = M}) ->
                               ]
                    }}
     end.
-
 
 ip_to_tpl(I) ->
     <<A:8/integer, B:8/integer, C:8/integer, D:8/integer>> = <<I:32/integer>>,

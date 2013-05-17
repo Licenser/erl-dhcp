@@ -217,7 +217,9 @@ enc_opt_val(Name, Val) ->
             <<Val:32/big>>;
         word_int ->
             <<Val:16/big>>;
-        string ->
+        string when is_binary(Val) ->
+            Val;
+        string when is_list(Val) ->
             list_to_binary(Val);
         message_type ->
             case Val of
