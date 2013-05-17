@@ -1,6 +1,6 @@
 -module(dhcp).
 -author(lweiyan@gmail.com).
--export([start/0, stop/0, ip_to_tpl/1]).
+-export([start/0, stop/0, ip_to_tpl/1, tpl_to_ip/1]).
 
 start() ->
     application:start(sasl),
@@ -15,3 +15,7 @@ stop() ->
 ip_to_tpl(I) ->
     <<A:8/integer, B:8/integer, C:8/integer, D:8/integer>> = <<I:32/integer>>,
     {A, B, C, D}.
+
+tpl_to_ip({A, B, C, D}) ->
+    <<I:32/integer>> = <<A:8/integer, B:8/integer, C:8/integer, D:8/integer>>,
+    I.

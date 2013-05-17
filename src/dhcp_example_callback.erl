@@ -18,6 +18,6 @@ get_net_info(CHAddr) ->
      {broadcast_address, Broadcast},
      {dns_server, DNS},
      {domain_name, Domain} %,
-                                                %{router, GW}
+     %%{router, GW}
     ].
 

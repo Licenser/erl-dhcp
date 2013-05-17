@@ -195,30 +195,3 @@ make_lease(L, Opts, [{next_server, IP = {_,_,_,_}} | R]) ->
 
 make_lease(L, Opts, [{K, V} | R]) ->
     make_lease(L, lists:keystore(K, 1, Opts, {K, V}), R).
-
-%%tpl_to_ip({A, B, C, D}) ->
-%%    <<I:32/integer>> = <<A:8/integer, B:8/integer, C:8/integer, D:8/integer>>,
-%%    I.
-%% case Packet#dhcp_packet.chaddr of
-%%      {0, 16#1c, 16#b3, 16#ff, 16#5d, 16#d0} -> % Desktop
-%%          {192, 168, 1, 109};
-%%      {0, 16#12, 16#5A, 16#AA, 16#26, 16#EC} -> % XBox
-%%          {192, 168, 1, 136};
-%%      {0, 16#26, 16#8, 16#76, 16#de, 16#98} -> % iPhone 3GS
-%%          {192, 168, 1, 3};
-%%      {0, 16#16, 16#cb, 16#bf, 16#82, 16#dd} -> % Dallas Work
-%%          {192, 168, 1, 5};
-%%      {0, 28, 179, 106, 228, 75} -> % iPhone
-%%          {192, 168, 1, 6};
-%%      {0,30,194,185,233,41} -> % Dallas Laptop
-%%          {192, 168, 1, 7};
-%%      {0,30,194,185,233,42} -> % Dallas Laptop
-%%          {192, 168, 1, 8};
-%%      {0, 16#0c, 16#29, 16#31, 16#c7, 16#4a} -> % Work Laptop
-%%          {192, 168, 2, 10};
-%%      _ ->
-%%          case lists:keysearch(requested_ip_address, 1, Packet#dhcp_packet.options) of
-%%              {value, {requested_ip_address, TempIP}} -> TempIP;
-%%              _ -> false
-%%          end
-%%  end,
