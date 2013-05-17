@@ -1,8 +1,8 @@
 -module(dhcp_example_callback).
 -export([get_net_info/1]).
 
-get_net_info(_CHAddr) ->
-
+get_net_info(CHAddr) ->
+    io:format("DHCP request from: ~p", [CHAddr]),
     Network = 16#C0A80200,
     GW = 16#C0A80201,
     Mask = 16#FFFFFF00,

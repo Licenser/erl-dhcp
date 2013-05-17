@@ -146,6 +146,7 @@ hw_address(binary, {A, B, C, D, E, F}) ->
 ?OPT_NAME( 61, client_id);
 ?OPT_NAME( 66, server_name);
 ?OPT_NAME( 67, bootfile_name);
+?OPT_NAME( 77, user_class);
 
 opt_name(Op) ->
     lager:warning("Unknown DHCP Option: ~p~n", [Op]),
@@ -175,6 +176,8 @@ opt_type(server_name)   -> string;
 opt_type(bootfile_name) -> string;
 
 opt_type(message_type) -> message_type;
+
+opt_type(user_class) -> string;
 
 opt_type(_) -> binary.
 
