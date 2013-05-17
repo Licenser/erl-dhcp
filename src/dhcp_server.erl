@@ -19,9 +19,10 @@ start_link () ->
 init ([]) ->
     {ok, Server} = application:get_env(server),
     {ok, M} = application:get_env(callback),
+    lager:info("Starting DHCP server on IP ~p with callback ~p", [Server, M]),
     {ok, Socket} = gen_udp:open(67, [binary,
                                      inet,
-                                     {ip, Server},
+                                     %{ip, Server},
                                      {broadcast, true},
                                      {reuseaddr, true}]),
     {ok, #dhcp_state{socket = Socket, server = Server, cb_mod = M}}.
@@ -46,7 +47,8 @@ handle_info ({udp, Socket, _IP, 68, Packet}, State = #dhcp_state{socket=Socket})
             lager:error("Failed to decode packet: ~p~n", [Reason]),
             {noreply, State}
     end;
-handle_info (_Info, State) ->
+handle_info(Info, State) ->
+    lager:debug("unknown package: ~p", [Info]),
     {noreply, State}.
 
 terminate (_Reason, _State) ->
