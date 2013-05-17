@@ -184,7 +184,7 @@ make_lease(L, Opts, []) ->
     L#dhcp_lease{options = Opts};
 
 make_lease(L, Opts, [{ip, IP} | R]) when is_integer(IP) ->
-    make_lease(L, Opts, [{ok, dhcp:ip_to_tpl(IP)} | R]);
+    make_lease(L, Opts, [{ip, dhcp:ip_to_tpl(IP)} | R]);
 make_lease(L, Opts, [{ip, IP = {_,_,_,_}} | R]) ->
     make_lease(L#dhcp_lease{ip_addr = IP}, Opts, R);
 
