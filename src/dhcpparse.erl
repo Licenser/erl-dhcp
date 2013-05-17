@@ -111,75 +111,64 @@ ip_address(tuple, B) ->
 ip_address(ip_address, <<A:8, B:8, C:8, D:8>>) ->
     {A, B, C, D};
 ip_address(binary, {A,B,C,D}) ->
-    <<A:8, B:8, C:8, D:8>>.
+    <<A:8, B:8, C:8, D:8>>;
+ip_address(binary, IP) when is_integer(IP) ->
+    <<IP:32>>.
 
 hw_address(tuple, <<A:8, B:8, C:8, D:8, E:8, F:8, _/binary>>) ->
     {A, B, C, D, E, F};
 hw_address(binary, {A, B, C, D, E, F}) ->
     <<A:8, B:8, C:8, D:8, E:8, F:8, 0:80>>.
 
+-define(OPT(Num, Atom, Type),
+        opt(name, Num) ->  Atom;
+            opt(name, Atom) ->  Num;
+            opt(type, Atom) -> Type).
 
--define(OPT_NAME(Num, Atom),
-        opt_name(Num) ->  Atom;
-            opt_name(Atom) ->  Num).
-?OPT_NAME(  1, subnet_mask);
-?OPT_NAME(  2, time_offset);
-?OPT_NAME(  3, router);
-?OPT_NAME(  4, time_server);
-?OPT_NAME(  5, name_server);
-?OPT_NAME(  6, dns_server);
-?OPT_NAME(  7, log_server);
-?OPT_NAME( 12, host_name);
-?OPT_NAME( 13, boot_file_size);
-?OPT_NAME( 15, domain_name);
-?OPT_NAME( 17, root_path);
-?OPT_NAME( 18, extension_file);
-?OPT_NAME( 28, broadcast_address);
-?OPT_NAME( 50, requested_ip_address);
-?OPT_NAME( 51, lease_time);
-?OPT_NAME( 53, message_type);
-?OPT_NAME( 54, server_id);
-?OPT_NAME( 55, parameter_request);
-?OPT_NAME( 57, max_message_size);
-?OPT_NAME( 58, renewal_time);
-?OPT_NAME( 59, rebinding_time);
-?OPT_NAME( 61, client_id);
-?OPT_NAME( 66, server_name);
-?OPT_NAME( 67, bootfile_name);
-?OPT_NAME( 77, user_class);
+?OPT(  1, subnet_mask,          ip_address);
+?OPT(  2, time_offset,          quad_int);
+?OPT(  3, router,               ip_address);
+?OPT(  4, time_server,          ip_address);
+?OPT(  5, name_server,          ip_address);
+?OPT(  6, dns_server,           ip_address);
+?OPT(  7, log_server,           ip_address);
+% Hostname string
+?OPT( 12, host_name,            string);
+% Size of boot file in 512 byte
+?OPT( 13, boot_file_size,       word_int);
+?OPT( 15, domain_name,          string);
+% Path name for root disk
+?OPT( 17, root_path,            string);
+?OPT( 18, extension_file,       string);
+?OPT( 28, broadcast_address,    ip_address);
+?OPT( 50, requested_ip_address, ip_address);
+?OPT( 51, lease_time,           quad_int);
+?OPT( 53, message_type,         message_type);
+?OPT( 54, server_id,            ip_address);
+?OPT( 55, parameter_request,    binary);
+?OPT( 57, max_message_size,     word_int);
+?OPT( 58, renewal_time,         quad_int);
+?OPT( 59, rebinding_time,       quad_int);
+?OPT( 60, vendor_id,            string);
+?OPT( 61, client_id,            binary);
+?OPT( 66, server_name,          string);
+?OPT( 67, bootfile_name,        string);
+?OPT( 77, user_class,           binary);
+?OPT( 81, client_fqdn,          string);
+
+opt(name, Op) ->
+    lager:warning("Unknown DHCP Option: ~p~n", [Op]),
+    Op;
+opt(type, Op) ->
+    lager:warning("Unknown DHCP Type: ~p~n", [Op]),
+    binary.
 
 opt_name(Op) ->
-    lager:warning("Unknown DHCP Option: ~p~n", [Op]),
-    Op.
+    opt(name, Op).
 
-opt_type(subnet_mask)          -> ip_address;
-opt_type(router)               -> ip_address;
-opt_type(time_server)          -> ip_address;
-opt_type(name_server)          -> ip_address;
-opt_type(dns_server)           -> ip_address;
-opt_type(log_server)           -> ip_address;
-opt_type(broadcast_address)    -> ip_address;
-opt_type(requested_ip_address) -> ip_address;
-opt_type(server_id)            -> ip_address;
+opt_type(Op) ->
+    opt(type, Op).
 
-opt_type(time_offset)    -> quad_int;
-opt_type(lease_time)     -> quad_int;
-opt_type(renewal_time)   -> quad_int;
-opt_type(rebinding_time) -> quad_int;
-
-opt_type(max_message_size) -> word_int;
-
-opt_type(host_name)   -> string;
-opt_type(domain_name) -> string;
-
-opt_type(server_name)   -> string;
-opt_type(bootfile_name) -> string;
-
-opt_type(message_type) -> message_type;
-
-opt_type(user_class) -> string;
-
-opt_type(_) -> binary.
 
 dec_opt_val(Name, Val) ->
     case opt_type(Name) of
@@ -192,7 +181,7 @@ dec_opt_val(Name, Val) ->
             <<Word:16/big>> = Val,
             Word;
         string ->
-            binary_to_list(Val);
+            Val;
         message_type ->
             <<Type:8>> = Val,
             case Type of

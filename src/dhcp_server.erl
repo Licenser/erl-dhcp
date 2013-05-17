@@ -22,7 +22,7 @@ init ([]) ->
     lager:info("Starting DHCP server on IP ~p with callback ~p", [Server, M]),
     {ok, Socket} = gen_udp:open(67, [binary,
                                      inet,
-                                     %{ip, Server},
+                                                %{ip, Server},
                                      {broadcast, true},
                                      {reuseaddr, true}]),
     {ok, #dhcp_state{socket = Socket, server = Server, cb_mod = M}}.
@@ -129,6 +129,12 @@ dest_addr(Packet) ->
     Packet#dhcp_packet.ciaddr.
 
 offer_packet(Xid, LeaseInfo, _State = #dhcp_state{server = Server}) ->
+    SIAddr = case LeaseInfo#dhcp_lease.next_server of
+                 undefined ->
+                     Server;
+                  Next ->
+                     Next
+             end,
     #dhcp_packet{
        msg_type = offer,
        op = 2,
@@ -136,7 +142,7 @@ offer_packet(Xid, LeaseInfo, _State = #dhcp_state{server = Server}) ->
        hlen = 6,
        xid = Xid,
        yiaddr = LeaseInfo#dhcp_lease.ip_addr,
-       siaddr = Server,
+       siaddr = SIAddr,
        chaddr = LeaseInfo#dhcp_lease.chaddr,
        options = [{message_type, offer}, {server_id, Server}] ++ LeaseInfo#dhcp_lease.options
       }.
@@ -170,32 +176,25 @@ get_leaseinfo(Packet, _State = #dhcp_state{cb_mod = M}) ->
     case M:get_net_info(Packet#dhcp_packet.chaddr) of
         undefined ->
             {error, no_lease};
-        {Network,
-         GW, %{192, 168, 2, 1}
-         Mask, %{255, 255, 255, 0}
-         DNS, %{192, 168, 2, 1}
-         Domain, %"danw.org"
-         IP} ->
-            Broadcast = Network + (bnot Mask), %{192, 168, 2, 255}
-
-            {ok, #dhcp_lease{
-                    ip_addr = ip_to_tpl(IP),
-                    chaddr = Packet#dhcp_packet.chaddr,
-                    options = [{lease_time, 3600}, % One hour
-                               {renewal_time, 1800}, % Thirty minutes
-                               {rebinding_time, 3000},
-                               {subnet_mask, ip_to_tpl(Mask)},
-                               {broadcast_address, ip_to_tpl(Broadcast)},
-                               {dns_server, ip_to_tpl(DNS)},
-                               {domain_name, list_to_binary(Domain)},
-                               {router, ip_to_tpl(GW)}
-                              ]
-                   }}
+        Lease ->
+            {ok, make_lease(#dhcp_lease{chaddr = Packet#dhcp_packet.chaddr}, [], Lease)}
     end.
 
-ip_to_tpl(I) ->
-    <<A:8/integer, B:8/integer, C:8/integer, D:8/integer>> = <<I:32/integer>>,
-    {A, B, C, D}.
+make_lease(L, Opts, []) ->
+    L#dhcp_lease{options = Opts};
+
+make_lease(L, Opts, [{ip, IP} | R]) when is_integer(IP) ->
+    make_lease(L, Opts, [{ok, dhcp:ip_to_tpl(IP)} | R]);
+make_lease(L, Opts, [{ip, IP = {_,_,_,_}} | R]) ->
+    make_lease(L#dhcp_lease{ip_addr = IP}, Opts, R);
+
+make_lease(L, Opts, [{next_server, IP} | R]) when is_integer(IP) ->
+    make_lease(L, Opts, [{next_server, dhcp:ip_to_tpl(IP)} | R]);
+make_lease(L, Opts, [{next_server, IP = {_,_,_,_}} | R]) ->
+    make_lease(L#dhcp_lease{next_server = IP}, Opts, R);
+
+make_lease(L, Opts, [{K, V} | R]) ->
+    make_lease(L, lists:keystore(K, 1, Opts, {K, V}), R).
 
 %%tpl_to_ip({A, B, C, D}) ->
 %%    <<I:32/integer>> = <<A:8/integer, B:8/integer, C:8/integer, D:8/integer>>,
