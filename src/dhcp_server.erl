@@ -19,7 +19,11 @@ start_link () ->
 init ([]) ->
     {ok, Server} = application:get_env(server),
     {ok, M} = application:get_env(callback),
-    {ok, Socket} = gen_udp:open(67, [binary, inet, {broadcast, true}, {reuseaddr, true}]),
+    {ok, Socket} = gen_udp:open(67, [binary,
+                                     inet,
+                                     {ip, Server},
+                                     {broadcast, true},
+                                     {reuseaddr, true}]),
     {ok, #dhcp_state{socket = Socket, server = Server, cb_mod = M}}.
 
 handle_call (_Request, _From, State) ->
